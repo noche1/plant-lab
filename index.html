@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>식물 초능력 발명소</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Nanum+Pen+Script&display=swap">
+<style>
+/* 시트 주소: 구글 시트 Apps Script 웹 앱 URL. 비어 있으면 이 기기 안에서만 도는 데모 모드 */
+:root{
+  --bg:#eef3ec; --paper:#fbfdf9; --ink:#1f3b2c; --muted:#5d7466; --line:#cfdcd1;
+  --leaf:#2f8f5b; --leaf-soft:#d7eedf; --sun:#f2b632; --sun-soft:#fdf0cc; --sky:#3c7fb4; --sky-soft:#dceaf5;
+  --stamp:#c8473b; --stamp-soft:#f7dedb;
+  --f-display:"Jua","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-hand:"Nanum Pen Script","Gowun Dodum",cursive;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#122019; --paper:#1a2b22; --ink:#e3efe6; --muted:#9db3a5; --line:#2e4537;
+  --leaf:#5cc488; --leaf-soft:#22412f; --sun:#f5c452; --sun-soft:#3c331a; --sky:#7fb6e0; --sky-soft:#1d3346;
+  --stamp:#ef7a6d; --stamp-soft:#432622; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:18px 64px}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(28px,5vw,44px);line-height:1.1;margin:0}
+h1 span{color:var(--leaf)}
+.sub{color:var(--muted);margin:2px 0 0}
+.me{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.chip-me{font-family:var(--f-display);font-size:20px;background:var(--paper);border:2px solid var(--leaf);border-radius:99px;padding:4px 14px}
+.mode{font-size:13px;border-radius:99px;padding:2px 10px;background:var(--sun-soft)}
+.mode.live{background:var(--leaf-soft)}
+.grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:24px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.step{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+.step h2{font-family:var(--f-display);font-weight:400;font-size:22px;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+.num{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--leaf);color:var(--paper);font-size:17px;flex:none}
+.hint{color:var(--muted);font-size:14px;margin:0 0 12px}
+.plants{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.plant{appearance:none;text-align:left;font:inherit;color:inherit;background:var(--bg);border:2px solid transparent;border-radius:12px;padding:10px 12px;cursor:pointer;display:grid;gap:2px;position:relative}
+.plant b{font-family:var(--f-display);font-weight:400;font-size:18px}
+.plant small{color:var(--muted);font-size:13px;line-height:1.4}
+.plant[aria-pressed="true"]{border-color:var(--leaf);background:var(--leaf-soft)}
+.plant .tag{position:absolute;top:8px;right:8px;font-family:var(--f-display);font-size:13px;background:var(--leaf);color:var(--paper);border-radius:99px;padding:0 8px}
+button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{appearance:none;font:inherit;font-size:15px;color:inherit;background:var(--bg);border:2px solid transparent;border-radius:99px;padding:6px 14px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--sun-soft);border-color:var(--sun)}
+label{display:block;font-size:14px;color:var(--muted);margin:12px 0 4px}
+input,textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+textarea{min-height:84px;resize:vertical}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
+.btn{appearance:none;font-family:var(--f-display);font-size:17px;border:0;border-radius:10px;padding:9px 16px;cursor:pointer;background:var(--leaf);color:var(--paper)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.sun{background:var(--sun);color:#2b2205}
+.btn.danger{background:var(--stamp);color:#fff}
+.btn:disabled{opacity:.5;cursor:wait}
+.combo{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px;font-family:var(--f-display);font-size:18px}
+.combo .slot{background:var(--leaf-soft);border:1px dashed var(--leaf);border-radius:10px;padding:2px 12px;min-width:90px;text-align:center}
+.combo .slot.empty{color:var(--muted);background:transparent}
+.side{position:sticky;top:12px}
+@media (max-width:860px){.side{position:static}}
+.cert{background:var(--paper);border:2px solid var(--ink);border-radius:6px;padding:22px 20px 20px;position:relative;box-shadow:6px 6px 0 var(--leaf-soft)}
+.cert:before{content:"";position:absolute;inset:6px;border:1px solid var(--line);border-radius:3px;pointer-events:none}
+.cert .no{font-size:12px;letter-spacing:.12em;color:var(--muted)}
+.cert h3{font-family:var(--f-display);font-weight:400;font-size:15px;letter-spacing:.3em;margin:6px 0 2px;color:var(--leaf)}
+.cert .name{font-family:var(--f-display);font-size:clamp(26px,4vw,34px);line-height:1.15;margin:0 0 12px;word-break:keep-all}
+.cert dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 12px;margin:0;font-size:15px}
+.cert dt{color:var(--muted);white-space:nowrap}
+.cert dd{margin:0;word-break:keep-all}
+.cert .heart{margin-top:14px;padding:10px 12px;background:var(--sun-soft);border-radius:8px;font-family:var(--f-hand);font-size:24px;line-height:1.3}
+.stamp{position:absolute;right:16px;bottom:14px;width:74px;height:74px;border:3px solid var(--stamp);border-radius:50%;color:var(--stamp);display:grid;place-items:center;text-align:center;font-family:var(--f-display);font-size:13px;line-height:1.2;transform:rotate(-12deg);opacity:.85}
+.cert .sign{margin-top:16px;padding-right:86px;font-size:15px}
+.ph{color:var(--muted);opacity:.7}
+.prompt{margin-top:16px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px}
+.prompt h4{font-family:var(--f-display);font-weight:400;font-size:18px;margin:0 0 4px}
+.prompt pre{white-space:pre-wrap;word-break:keep-all;font-family:var(--f-body);font-size:14px;background:var(--bg);border-radius:8px;padding:10px;margin:8px 0}
+/* 전시장 */
+.gallery{margin-top:28px}
+.ghead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:10px}
+.gallery h2{font-family:var(--f-display);font-weight:400;font-size:26px;margin:0}
+.count{color:var(--muted);font-size:14px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.mini{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;gap:4px;align-content:start}
+.mini.new{border-color:var(--sun);box-shadow:0 0 0 3px var(--sun-soft)}
+.mini .who{font-size:15px;font-weight:700}
+.mini b{font-family:var(--f-display);font-weight:400;font-size:21px;word-break:keep-all}
+.mini small{color:var(--muted)}
+.mini .acts{display:flex;gap:6px;margin-top:4px}
+.mini .acts button{font:inherit;font-size:13px;background:none;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:2px 8px;cursor:pointer}
+.empty{background:var(--paper);border:1px dashed var(--line);border-radius:10px;padding:20px;color:var(--muted);text-align:center}
+.raw{margin-top:16px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.raw summary{cursor:pointer;font-family:var(--f-display);font-size:18px}
+.tbl{overflow-x:auto;margin-top:8px}
+table{border-collapse:collapse;font-size:13px;min-width:640px;width:100%}
+th,td{border-bottom:1px solid var(--line);padding:4px 8px;text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:400}
+td.no{font-weight:700;color:var(--stamp)}
+/* 번호 고르기 */
+.pick{position:fixed;inset:0;background:color-mix(in srgb,var(--ink) 55%,transparent);display:grid;place-items:center;padding:16px;z-index:10}
+.pickbox{background:var(--paper);border-radius:16px;padding:20px;max-width:720px;width:100%;max-height:calc(100vh - 32px);overflow:auto}
+.pickbox h2{font-family:var(--f-display);font-weight:400;font-size:26px;margin:0}
+.nos{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin-top:12px}
+.nobtn{appearance:none;font:inherit;color:inherit;background:var(--bg);border:2px solid transparent;border-radius:12px;padding:8px 4px;cursor:pointer;display:grid;justify-items:center;gap:0}
+.nobtn .e{font-size:30px;line-height:1.2}
+.nobtn b{font-family:var(--f-display);font-weight:400;font-size:17px}
+.nobtn small{font-size:12px;color:var(--muted)}
+.nobtn[aria-pressed="true"]{border-color:var(--leaf);background:var(--leaf-soft)}
+/* 선생님 메뉴 */
+.tbtn{position:fixed;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);font-size:13px;background:var(--paper);border:1px solid var(--line);color:var(--muted);border-radius:99px;padding:4px 12px;cursor:pointer;z-index:5}
+.teacher{background:var(--paper);border:2px solid var(--sky);border-radius:14px;padding:18px;margin-bottom:20px}
+.teacher h2{font-family:var(--f-display);font-weight:400;font-size:24px;margin:0 0 4px}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.tcol h3{font-family:var(--f-display);font-weight:400;font-size:18px;margin:8px 0 2px}
+.tcol p{font-size:14px;color:var(--muted);margin:0 0 6px}
+.ok{color:var(--leaf);font-weight:700}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 56px);transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:8px 16px;border-radius:99px;font-size:15px;z-index:20;max-width:calc(100vw - 32px);text-align:center}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@keyframes pop{0%{transform:scale(.97) rotate(-.5deg)}100%{transform:none}}
+.cert.pop{animation:pop .35s ease-out}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>식물 <span>초능력</span> 발명소</h1>
+      <p class="sub">식물의 놀라운 능력 두 가지를 합쳐서, 누군가를 돕는 발명품을 만들어요.</p>
+    </div>
+    <div class="me">
+      <span class="chip-me" id="meChip">번호를 골라요</span>
+      <button class="btn ghost" id="meBtn" type="button">번호 바꾸기</button>
+      <span class="mode" id="mode">데모 모드</span>
+    </div>
+  </header>
+
+  <section class="teacher" id="teacher" hidden>
+    <h2>선생님 메뉴</h2>
+    <p class="hint">이 메뉴에서 넣은 명렬표와 비밀번호는 <b>이 기기 브라우저에만</b> 저장돼요. 서버(구글 시트)에는 번호만 저장돼요.</p>
+    <div class="tgrid">
+      <div class="tcol">
+        <h3>명렬표</h3>
+        <p>나이스에서 뽑은 “번호 이름” 두 칸을 붙여넣어요. 이 기기에서만 번호가 이름으로 보여요.</p>
+        <textarea id="rosterIn" placeholder="1	김민준&#10;2	이서연&#10;3	박도윤"></textarea>
+        <div class="row">
+          <button class="btn" id="rosterSave" type="button">명렬표 저장</button>
+          <label class="btn ghost" style="margin:0;color:var(--ink)">파일 불러오기<input type="file" id="rosterFile" accept=".csv,.txt,.tsv" hidden></label>
+          <button class="btn ghost" id="rosterClear" type="button">명렬표 지우기</button>
+        </div>
+        <p id="rosterState" style="margin-top:6px"></p>
+      </div>
+      <div class="tcol">
+        <h3>시트 연결</h3>
+        <p>구글 시트 Apps Script 웹 앱 주소예요. 비워 두면 이 기기 안에서만 도는 데모 모드예요.</p>
+        <input id="apiIn" placeholder="https://script.google.com/macros/s/…/exec">
+        <div class="row"><button class="btn" id="apiSave" type="button">연결</button></div>
+        <h3>관리 비밀번호</h3>
+        <p>시트 스크립트에 정해 둔 비밀번호예요. 맞아야 기록을 지울 수 있어요.</p>
+        <input id="keyIn" type="password" autocomplete="off">
+        <div class="row"><button class="btn" id="keySave" type="button">확인</button><span id="keyState"></span></div>
+      </div>
+      <div class="tcol">
+        <h3>기록 관리</h3>
+        <p>전시장 카드마다 지우기 버튼이 생겨요. 아래 버튼은 반 전체 기록을 지워요.</p>
+        <div class="row"><button class="btn danger" id="clearAll" type="button" disabled>반 전체 기록 지우기</button></div>
+        <p id="clearState" style="margin-top:6px"></p>
+        <div class="row"><button class="btn ghost" id="teacherClose" type="button">선생님 메뉴 닫기</button></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid">
+    <main>
+      <section class="step">
+        <h2><span class="num">1</span>식물 두 개 고르기</h2>
+        <p class="hint">초능력이 마음에 드는 식물을 두 개 눌러요. 다시 누르면 취소돼요.</p>
+        <div class="plants" id="plants"></div>
+        <div class="combo" aria-live="polite"><span class="slot" id="slotA"></span><span>+</span><span class="slot" id="slotB"></span></div>
+        <div class="row"><button class="btn ghost" id="randomBtn" type="button">생각이 안 나요! 아무거나 골라 줘</button></div>
+      </section>
+      <section class="step">
+        <h2><span class="num">2</span>누구를 도와줄까요?</h2>
+        <p class="hint">발명품이 해결해 줄 불편함을 골라요. 없으면 직접 써도 돼요.</p>
+        <div class="chips" id="problems"></div>
+        <label for="problemOwn">직접 쓰기</label>
+        <input id="problemOwn" maxlength="60" placeholder="예) 우산을 자꾸 잃어버리는 우리 아빠">
+      </section>
+      <section class="step">
+        <h2><span class="num">3</span>발명품 이름과 설명</h2>
+        <label for="invName">발명품 이름</label>
+        <input id="invName" maxlength="30" placeholder="예) 찰싹 우비">
+        <label for="invDesc">어떻게 쓰는 물건인가요?</label>
+        <textarea id="invDesc" maxlength="200" placeholder="두 식물의 초능력이 어디에 들어갔는지 써 보세요."></textarea>
+      </section>
+      <section class="step">
+        <h2><span class="num">4</span>마음 담기</h2>
+        <p class="hint">이 발명품을 받는 사람에게 어떤 마음을 전하고 싶나요?</p>
+        <label for="heart">마음 한 줄</label>
+        <input id="heart" maxlength="60" placeholder="예) 비 오는 날에도 웃으며 학교에 오면 좋겠어.">
+        <div class="row">
+          <button class="btn sun" id="saveBtn" type="button">특허 등록하기</button>
+          <button class="btn ghost" id="resetBtn" type="button">새로 만들기</button>
+        </div>
+      </section>
+    </main>
+    <aside class="side">
+      <article class="cert" id="cert" aria-live="polite">
+        <div class="no" id="certNo">특허 등록 전</div>
+        <h3>발명 특허증</h3>
+        <p class="name" id="cName"></p>
+        <dl>
+          <dt>합친 초능력</dt><dd id="cCombo"></dd>
+          <dt>도와줄 사람</dt><dd id="cProblem"></dd>
+          <dt>사용 방법</dt><dd id="cDesc"></dd>
+        </dl>
+        <div class="heart" id="cHeart"></div>
+        <div class="sign" id="cSign"></div>
+        <div class="stamp" aria-hidden="true">식물<br>초능력<br>발명소</div>
+      </article>
+      <div class="prompt">
+        <h4>AI 그림과 비교해 보기</h4>
+        <p class="hint" style="margin:0">내가 상상한 그림을 먼저 그린 뒤, 아래 문장을 그림 AI에 넣어 비교해요.</p>
+        <pre id="aiPrompt"></pre>
+        <button class="btn ghost" id="copyBtn" type="button">문장 복사</button>
+      </div>
+    </aside>
+  </div>
+
+  <section class="gallery">
+    <div class="ghead">
+      <h2>우리 반 발명품 전시장</h2>
+      <span class="count" id="count"></span>
+    </div>
+    <div class="cards" id="cards"></div>
+    <details class="raw">
+      <summary>서버에 실제로 저장된 데이터 보기</summary>
+      <p class="hint" style="margin:6px 0 0">구글 시트에 저장된 그대로예요. 이름 칸이 없어요. 이름은 선생님 컴퓨터의 명렬표에만 있어요.</p>
+      <div class="tbl"><table><thead><tr><th>id</th><th>시간</th><th>no</th><th>a</th><th>b</th><th>problem</th><th>name</th><th>desc</th><th>heart</th></tr></thead><tbody id="rawBody"></tbody></table></div>
+    </details>
+  </section>
+</div>
+
+<div class="pick" id="pick" hidden>
+  <div class="pickbox" role="dialog" aria-modal="true" aria-labelledby="pickTitle">
+    <h2 id="pickTitle">나는 몇 번일까요?</h2>
+    <p class="hint" style="margin:4px 0 0">내 번호와 그림을 눌러요. 그림은 선생님이 정해 준 내 표시예요.</p>
+    <div class="nos" id="nos"></div>
+    <div class="row"><button class="btn" id="pickOk" type="button" disabled>이 번호로 시작하기</button><span id="pickSel" class="hint" style="margin:0"></span></div>
+  </div>
+</div>
+
+<button class="tbtn" id="tbtn" type="button">선생님</button>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* 연결할 시트 주소를 여기에 넣으면 모든 기기가 같은 전시장을 써요. 비어 있으면 데모 모드 */
+const API_URL = "https://script.google.com/macros/s/AKfycbwrHltXk_7w2j1_rCUpC-S29NTw56TpUTItMJycVZ-_lxW2gujvyYVlHxdsOVK7yWOrPA/exec";
+const MAX_NO = 30;
+
+const PLANTS=[
+ {n:"연잎",p:"물방울이 또르르 굴러떨어져요",k:"물에 젖지 않는"},
+ {n:"도꼬마리",p:"갈고리 가시로 옷에 착 달라붙어요",k:"찰싹 달라붙는"},
+ {n:"민들레 씨",p:"솜털 낙하산을 펴고 멀리 날아가요",k:"바람 타고 나는"},
+ {n:"단풍 씨앗",p:"빙글빙글 돌며 천천히 떨어져요",k:"빙글빙글 천천히 내려오는"},
+ {n:"선인장",p:"몸속에 물을 꾹 저장해요",k:"물을 저장하는"},
+ {n:"미모사",p:"건드리면 잎을 스르르 접어요",k:"건드리면 접히는"},
+ {n:"해바라기",p:"어릴 때 해를 따라 고개를 돌려요",k:"해를 따라 움직이는"},
+ {n:"담쟁이덩굴",p:"작은 빨판으로 벽을 타고 올라가요",k:"벽을 타고 오르는"},
+ {n:"끈끈이주걱",p:"끈적한 털로 벌레를 붙잡아요",k:"끈적하게 붙잡는"},
+ {n:"대나무",p:"속은 비었는데 튼튼하고 잘 휘어요",k:"가볍고 튼튼한"},
+ {n:"봉선화",p:"씨주머니가 톡 터지며 씨를 튕겨요",k:"톡 튕겨 내보내는"},
+ {n:"솔방울",p:"비 오면 닫히고 맑으면 열려요",k:"날씨 따라 열리고 닫히는"}
+];
+const PROBLEMS=["비 오는 날 등교하는 친구","높은 곳에 손이 안 닿는 동생","무거운 짐을 든 할머니","물 주기를 자꾸 잊는 교실 화분","땡볕 아래 운동장 친구들","자꾸 잃어버리는 필통 주인","집에 혼자 있는 강아지","잠이 안 오는 밤의 나"];
+/* 번호마다 고정된 그림. 아이들이 스스로 짓는 별명이 아니라 선생님이 정해 주는 표시 */
+const ANIMALS=["🐶","🐱","🐰","🦊","🐻","🐼","🦒","🐯","🦁","🐮","🐷","🐸","🐵","🐔","🐧","🐦","🦆","🦉","🐴","🦄","🐝","🐞","🦋","🐢","🐍","🐙","🦀","🐬","🐳","🦕","🦔","🦦","🐿️","🦩","🐌","🐠","🦭","🐊","🦘","🐨"];
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ph=t=>`<span class="ph">${t}</span>`;
+const ls={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+
+let me=ls.get("pl.me",null);            // 내 번호 (이 기기)
+let roster=ls.get("pl.roster",{});       // 명렬표 (이 기기에만)
+let api=ls.get("pl.api","")||API_URL;    // 시트 주소
+let key=ls.get("pl.key","");             // 관리 비밀번호 (확인된 경우만)
+let items=[]; let seen=new Set(); let firstLoad=true;
+let sel=[]; let problem="";
+
+function icon(no){return ANIMALS[(no-1)%ANIMALS.length]}
+function who(no){no=+no;return roster[no]?`${icon(no)} ${roster[no]}`:`${icon(no)} ${no}번`}
+function toast(m){const t=$("toast");t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,2200)}
+
+/* ---------- 저장소: 시트 또는 데모 ---------- */
+const store={
+  async list(){
+    if(!api) return ls.get("pl.demo",[]);
+    const r=await fetch(api,{cache:"no-store"}); const j=await r.json(); if(!j.ok) throw new Error(j.error); return j.items;
+  },
+  async post(body){
+    if(!api){
+      let d=ls.get("pl.demo",[]);
+      if(body.action==="add"){const it={id:Math.random().toString(36).slice(2,10),time:new Date().toISOString(),...body.item};d.push(it);ls.set("pl.demo",d);return{ok:true,id:it.id}}
+      if(body.action==="check") return {ok:body.key==="demo"};
+      if(body.key!=="demo") return {ok:false,error:"wrong_key"};
+      if(body.action==="remove"){ls.set("pl.demo",d.filter(x=>x.id!==body.id));return{ok:true}}
+      if(body.action==="clear"){ls.set("pl.demo",[]);return{ok:true}}
+      return {ok:false};
+    }
+    const r=await fetch(api,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(body)});
+    return r.json();
+  }
+};
+
+/* ---------- 번호 고르기 ---------- */
+let pickNo=null;
+function openPick(){
+  pickNo=me; $("pick").hidden=false;
+  const n=Math.max(MAX_NO,...Object.keys(roster).map(Number));
+  $("nos").innerHTML=Array.from({length:n},(_,i)=>i+1).map(no=>`<button type="button" class="nobtn" data-no="${no}" aria-pressed="${pickNo===no}"><span class="e">${icon(no)}</span><b>${no}번</b>${roster[no]?`<small>${esc(roster[no])}</small>`:""}</button>`).join("");
+  $("nos").querySelectorAll(".nobtn").forEach(b=>b.onclick=()=>{pickNo=+b.dataset.no;$("nos").querySelectorAll(".nobtn").forEach(x=>x.setAttribute("aria-pressed",x===b));$("pickOk").disabled=false;$("pickSel").textContent=`${icon(pickNo)} ${pickNo}번이 맞나요?`});
+  $("pickOk").disabled=pickNo==null; $("pickSel").textContent=pickNo?`${icon(pickNo)} ${pickNo}번이 맞나요?`:"";
+}
+$("pickOk").onclick=()=>{me=pickNo;ls.set("pl.me",me);$("pick").hidden=true;renderMe();paint();toast(`${who(me)}, 반가워요!`)};
+$("meBtn").onclick=openPick;
+function renderMe(){$("meChip").textContent=me?who(me):"번호를 골라요"}
+
+/* ---------- 만들기 ---------- */
+function renderPlants(){
+  $("plants").innerHTML=PLANTS.map((pl,i)=>{const idx=sel.indexOf(i);return `<button type="button" class="plant" data-i="${i}" aria-pressed="${idx>-1}"><b>${pl.n}</b><small>${pl.p}</small>${idx>-1?`<span class="tag">${idx?"둘째":"첫째"}</span>`:""}</button>`}).join("");
+  $("plants").querySelectorAll(".plant").forEach(b=>b.onclick=()=>{const i=+b.dataset.i,idx=sel.indexOf(i);if(idx>-1)sel.splice(idx,1);else{if(sel.length===2)sel.shift();sel.push(i)}renderPlants();paint()});
+  const s=(el,i)=>{el.textContent=i==null?"?":PLANTS[i].n;el.classList.toggle("empty",i==null)};s($("slotA"),sel[0]);s($("slotB"),sel[1]);
+}
+function renderProblems(){
+  const own=$("problemOwn").value.trim();
+  $("problems").innerHTML=PROBLEMS.map(p=>`<button type="button" class="chip" aria-pressed="${problem===p&&!own}">${p}</button>`).join("");
+  $("problems").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{problem=c.textContent;$("problemOwn").value="";renderProblems();paint()});
+}
+function current(){return{no:me,a:sel[0],b:sel[1],problem:$("problemOwn").value.trim()||problem,name:$("invName").value.trim(),desc:$("invDesc").value.trim(),heart:$("heart").value.trim()}}
+function paint(d=current(),reg){
+  const A=PLANTS[d.a],B=PLANTS[d.b];
+  $("cName").innerHTML=d.name?esc(d.name):ph("발명품 이름");
+  $("cCombo").innerHTML=(A?esc(A.n)+"의 "+esc(A.k)+" 힘":ph("첫째 식물"))+" + "+(B?esc(B.n)+"의 "+esc(B.k)+" 힘":ph("둘째 식물"));
+  $("cProblem").innerHTML=d.problem?esc(d.problem):ph("누구를 도울까요?");
+  $("cDesc").innerHTML=d.desc?esc(d.desc):ph("사용 방법을 써 주세요");
+  $("cHeart").innerHTML=d.heart?"“"+esc(d.heart)+"”":ph("마음 한 줄이 여기에 들어가요");
+  const t=d.time?new Date(d.time):new Date();
+  $("cSign").innerHTML=`발명가 <b>${d.no?esc(who(d.no)):"○○○"}</b> · ${t.getFullYear()}년 ${t.getMonth()+1}월 ${t.getDate()}일`;
+  $("certNo").textContent=reg?`특허 번호 ${reg}`:"특허 등록 전";
+  $("aiPrompt").textContent=`${A?A.n:"[식물1]"}의 ${A?A.k:"…"} 능력과 ${B?B.n:"[식물2]"}의 ${B?B.k:"…"} 능력을 합친 발명품 "${d.name||"[이름]"}" 그림을 그려 줘. ${d.problem?d.problem+"을(를) 돕는 물건이야. ":""}${d.desc?d.desc+" ":""}어린이 그림책처럼 밝고 귀여운 그림으로 그려 줘.`;
+}
+function bump(){const c=$("cert");c.classList.remove("pop");void c.offsetWidth;c.classList.add("pop")}
+["problemOwn","invName","invDesc","heart"].forEach(id=>$(id).addEventListener("input",()=>{if(id==="problemOwn")renderProblems();paint()}));
+$("randomBtn").onclick=()=>{let a=Math.floor(Math.random()*PLANTS.length),b;do{b=Math.floor(Math.random()*PLANTS.length)}while(b===a);sel=[a,b];problem=PROBLEMS[Math.floor(Math.random()*PROBLEMS.length)];$("problemOwn").value="";renderPlants();renderProblems();paint();bump();toast(`${PLANTS[a].n} + ${PLANTS[b].n}! 어떤 발명품이 될까요?`)};
+$("resetBtn").onclick=()=>{sel=[];problem="";["problemOwn","invName","invDesc","heart"].forEach(id=>$(id).value="");renderPlants();renderProblems();paint()};
+$("copyBtn").onclick=()=>{const txt=$("aiPrompt").textContent;navigator.clipboard.writeText(txt).then(()=>toast("복사했어요")).catch(()=>{const r=document.createRange();r.selectNodeContents($("aiPrompt"));const s=getSelection();s.removeAllRanges();s.addRange(r);toast("선택된 글자를 복사해 주세요")})};
+$("saveBtn").onclick=async()=>{
+  if(!me){openPick();return}
+  const d=current(),miss=[];
+  if(d.a==null||d.b==null)miss.push("식물 두 개");if(!d.problem)miss.push("도와줄 사람");if(!d.name)miss.push("발명품 이름");
+  if(miss.length){toast(miss.join(", ")+"을(를) 채워 주세요");return}
+  const b=$("saveBtn");b.disabled=true;b.textContent="등록하는 중…";
+  try{
+    const r=await store.post({action:"add",item:d});
+    if(!r.ok) throw new Error(r.error);
+    paint(d,r.id);bump();toast("특허 등록 완료! 전시장에 올라갔어요");
+    seen.add(r.id); await refresh();
+  }catch(e){toast("등록하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요")}
+  b.disabled=false;b.textContent="특허 등록하기";
+};
+
+/* ---------- 전시장 ---------- */
+async function refresh(){
+  try{ items=await store.list(); }catch(e){ $("count").textContent="전시장을 불러오지 못했어요"; return; }
+  const list=[...items].reverse();
+  $("count").textContent=`${items.length}개 · ${api?"5초마다 새로고침":"데모 모드: 이 기기 기록만 보여요"}`;
+  if(!list.length){$("cards").innerHTML=`<div class="empty">아직 등록된 발명품이 없어요. 첫 번째 발명가가 되어 보세요!</div>`}
+  else{
+    $("cards").innerHTML=list.map(d=>{
+      const A=PLANTS[d.a],B=PLANTS[d.b],isNew=!firstLoad&&!seen.has(String(d.id));
+      return `<div class="mini${isNew?" new":""}"><span class="who">${esc(who(d.no))}</span><b>${esc(d.name)}</b><small>${A?esc(A.n):"?"} + ${B?esc(B.n):"?"} · ${esc(d.problem)}</small><div class="acts"><button type="button" data-view="${esc(d.id)}">특허증 보기</button>${key?`<button type="button" data-del="${esc(d.id)}">지우기</button>`:""}</div></div>`;
+    }).join("");
+    $("cards").querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>{const d=items.find(x=>String(x.id)===b.dataset.view);if(!d)return;paint(d,d.id);bump();window.scrollTo({top:0,behavior:"smooth"})});
+    $("cards").querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{
+      if(!b.dataset.sure){b.dataset.sure=1;b.textContent="정말 지울까요?";return}
+      const r=await store.post({action:"remove",id:b.dataset.del,key});
+      toast(r.ok?"지웠어요":"지우지 못했어요");refresh();
+    });
+  }
+  items.forEach(d=>seen.add(String(d.id))); firstLoad=false;
+  $("rawBody").innerHTML=items.map(d=>`<tr><td>${esc(d.id)}</td><td>${esc(new Date(d.time).toLocaleString("ko-KR",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}))}</td><td class="no">${esc(d.no)}</td><td>${esc(d.a)}</td><td>${esc(d.b)}</td><td>${esc(d.problem)}</td><td>${esc(d.name)}</td><td>${esc(d.desc)}</td><td>${esc(d.heart)}</td></tr>`).join("")||`<tr><td colspan="9" class="ph">비어 있어요</td></tr>`;
+}
+let timer=null;
+function startPoll(){clearInterval(timer);if(api)timer=setInterval(()=>{if(!document.hidden)refresh()},5000)}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()});
+
+/* ---------- 선생님 메뉴 ---------- */
+function renderTeacher(){
+  const n=Object.keys(roster).length;
+  $("rosterState").innerHTML=n?`<span class="ok">이 기기에 명렬표 ${n}명이 있어요.</span>`:"이 기기에는 명렬표가 없어요.";
+  $("apiIn").value=ls.get("pl.api","")||"";
+  $("keyState").innerHTML=key?`<span class="ok">확인됨</span>`:"";
+  $("clearAll").disabled=!key;
+  $("mode").textContent=api?"반 전체 연결됨":"데모 모드";$("mode").classList.toggle("live",!!api);
+}
+function parseRoster(txt){
+  const out={};
+  txt.split(/\r?\n/).forEach(line=>{const m=line.trim().match(/^"?(\d{1,2})"?[\s,\t]+"?([^",\t]+?)"?\s*$/);if(m){const no=+m[1];if(no>=1&&no<=40)out[no]=m[2].trim().slice(0,20)}});
+  return out;
+}
+$("tbtn").onclick=()=>{$("teacher").hidden=!$("teacher").hidden;renderTeacher();if(!$("teacher").hidden)$("teacher").scrollIntoView({behavior:"smooth"})};
+$("teacherClose").onclick=()=>{$("teacher").hidden=true};
+$("rosterSave").onclick=()=>{const r=parseRoster($("rosterIn").value);if(!Object.keys(r).length){toast("“번호 이름” 형식으로 붙여넣어 주세요");return}roster=r;ls.set("pl.roster",roster);$("rosterIn").value="";renderTeacher();renderMe();refresh();toast(`명렬표 ${Object.keys(r).length}명을 이 기기에 저장했어요`)};
+$("rosterFile").onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=>{$("rosterIn").value=fr.result;$("rosterSave").click()};fr.readAsText(f,"utf-8");e.target.value=""};
+$("rosterClear").onclick=e=>{const b=e.currentTarget;if(!b.dataset.sure){b.dataset.sure=1;b.textContent="한 번 더 누르면 지워져요";return}roster={};ls.del("pl.roster");delete b.dataset.sure;b.textContent="명렬표 지우기";renderTeacher();renderMe();refresh();toast("이 기기에서 명렬표를 지웠어요")};
+$("apiSave").onclick=()=>{const v=$("apiIn").value.trim();if(v&&!/^https:\/\/script\.google(usercontent)?\.com\//.test(v)){toast("구글 Apps Script 웹 앱 주소를 넣어 주세요");return}ls.set("pl.api",v);api=v||API_URL;key="";ls.del("pl.key");seen=new Set();firstLoad=true;renderTeacher();startPoll();refresh();toast(api?"시트에 연결했어요":"데모 모드로 바꿨어요")};
+$("keySave").onclick=async()=>{const k=$("keyIn").value;if(!k)return;const r=await store.post({action:"check",key:k}).catch(()=>({ok:false}));if(r.ok){key=k;ls.set("pl.key",k);$("keyIn").value="";toast("관리 비밀번호를 확인했어요")}else{toast("비밀번호가 맞지 않아요")}renderTeacher();refresh()};
+$("clearAll").onclick=async e=>{
+  const b=e.currentTarget;
+  if(!b.dataset.sure){b.dataset.sure=1;b.textContent="정말 반 전체를 지울까요?";$("clearState").textContent=`지금 ${items.length}개가 있어요. 한 번 더 누르면 모두 지워져요.`;return}
+  delete b.dataset.sure;b.textContent="반 전체 기록 지우기";
+  const r=await store.post({action:"clear",key});
+  $("clearState").textContent=r.ok?"모두 지웠어요.":"지우지 못했어요. 비밀번호를 다시 확인해 주세요.";refresh();
+};
+
+/* ---------- 시작 ---------- */
+renderMe();renderPlants();renderProblems();paint();renderTeacher();refresh();startPoll();
+if(!me)openPick();
+</script>
+</body>
+</html>
