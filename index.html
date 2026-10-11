@@ -250,6 +250,7 @@ td.no{font-weight:700;color:var(--stamp)}
     <p class="hint" style="margin:4px 0 0">내 번호와 그림을 눌러요. 그림은 선생님이 정해 준 내 표시예요.</p>
     <div class="nos" id="nos"></div>
     <div class="row"><button class="btn" id="pickOk" type="button" disabled>이 번호로 시작하기</button><span id="pickSel" class="hint" style="margin:0"></span></div>
+    <div class="row" style="justify-content:flex-end;border-top:1px dashed var(--line);padding-top:12px"><button class="btn ghost" id="iAmTeacher" type="button">저는 선생님이에요</button></div>
   </div>
 </div>
 
@@ -285,6 +286,7 @@ const ph=t=>`<span class="ph">${t}</span>`;
 const ls={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
 
 let me=ls.get("pl.me",null);            // 내 번호 (이 기기)
+let isTeacher=ls.get("pl.teacher",false); // 이 기기는 선생님 기기
 let roster=ls.get("pl.roster",{});       // 명렬표 (이 기기에만)
 let api=ls.get("pl.api","")||API_URL;    // 시트 주소
 let key=ls.get("pl.key","");             // 관리 비밀번호 (확인된 경우만)
@@ -325,9 +327,10 @@ function openPick(){
   $("nos").querySelectorAll(".nobtn").forEach(b=>b.onclick=()=>{pickNo=+b.dataset.no;$("nos").querySelectorAll(".nobtn").forEach(x=>x.setAttribute("aria-pressed",x===b));$("pickOk").disabled=false;$("pickSel").textContent=`${icon(pickNo)} ${pickNo}번이 맞나요?`});
   $("pickOk").disabled=pickNo==null; $("pickSel").textContent=pickNo?`${icon(pickNo)} ${pickNo}번이 맞나요?`:"";
 }
-$("pickOk").onclick=()=>{me=pickNo;ls.set("pl.me",me);$("pick").hidden=true;renderMe();paint();toast(`${who(me)}, 반가워요!`)};
+$("pickOk").onclick=()=>{me=pickNo;isTeacher=false;ls.set("pl.me",me);ls.del("pl.teacher");$("pick").hidden=true;renderMe();paint();toast(`${who(me)}, 반가워요!`)};
+$("iAmTeacher").onclick=()=>{me=null;isTeacher=true;ls.del("pl.me");ls.set("pl.teacher",true);$("pick").hidden=true;renderMe();paint();$("teacher").hidden=false;renderTeacher();$("teacher").scrollIntoView({behavior:"smooth"})};
 $("meBtn").onclick=openPick;
-function renderMe(){$("meChip").textContent=me?who(me):"번호를 골라요"}
+function renderMe(){$("meChip").textContent=me?who(me):isTeacher?"🧑‍🏫 선생님":"번호를 골라요"}
 
 /* ---------- 만들기 ---------- */
 function renderPlants(){
@@ -429,7 +432,7 @@ $("clearAll").onclick=async e=>{
 
 /* ---------- 시작 ---------- */
 renderMe();renderPlants();renderProblems();paint();renderTeacher();refresh();startPoll();
-if(!me)openPick();
+if(!me&&!isTeacher)openPick();
 </script>
 </body>
 </html>
